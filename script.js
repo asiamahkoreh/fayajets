@@ -1,0 +1,185 @@
+/* ============================================
+   FAYAJETS WEBSITE — script.js
+   Handles: Nav toggle, form submission → WhatsApp
+============================================ */
+
+// ---- Set Footer Year ----
+document.getElementById('year').textContent = new Date().getFullYear();
+
+
+// ---- Mobile Navigation Toggle ----
+const hamburger = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('active');
+  mobileMenu.classList.toggle('open');
+});
+
+// Close mobile menu when a link is clicked
+document.querySelectorAll('.mobile-link').forEach(link => {
+  link.addEventListener('click', () => {
+    hamburger.classList.remove('active');
+    mobileMenu.classList.remove('open');
+  });
+});
+
+
+// ---- Smooth close nav on scroll (optional UX) ----
+window.addEventListener('scroll', () => {
+  if (mobileMenu.classList.contains('open')) {
+    hamburger.classList.remove('active');
+    mobileMenu.classList.remove('open');
+  }
+});
+
+
+// ---- Bot Request Form → WhatsApp ----
+const form = document.getElementById('botRequestForm');
+
+form.addEventListener('submit', function (e) {
+  // Prevent page reload
+  e.preventDefault();
+
+  // --- Collect form values ---
+  const businessName       = getValue('businessName');
+  const ownerName          = getValue('ownerName');
+  const email              = getValue('email');
+  const phone              = getValue('phone');
+  const whatsapp           = getValue('whatsapp');
+  const country            = getValue('country');
+  const industry           = getValue('industry');
+  const website            = getValue('website') || 'Not provided';
+  const businessDesc       = getValue('businessDesc');
+  const chatbotGoals       = getValue('chatbotGoals');
+  const wantsWebsite       = getRadio('wantsWebsiteChatbot');
+  const wantsWhatsApp      = getRadio('wantsWhatsApp');
+  const faqs               = getValue('faqs') || 'Not provided';
+  const businessHours      = getValue('businessHours');
+  const language           = getValue('language');
+  const additionalInfo     = getValue('additionalInfo') || 'None';
+
+  // --- Basic validation check ---
+  if (!businessName || !ownerName || !email || !phone || !whatsapp || !country || !industry || !businessDesc || !chatbotGoals || !wantsWebsite || !wantsWhatsApp || !businessHours || !language) {
+    showAlert('Please fill in all required fields before submitting.');
+    return;
+  }
+
+  // --- Format message ---
+  const message =
+`*New Chatbot Request — Fayajets*
+
+*Business Name:* ${businessName}
+*Owner Name:* ${ownerName}
+*Email:* ${email}
+*Phone:* ${phone}
+*WhatsApp:* ${whatsapp}
+*Country:* ${country}
+*Industry:* ${industry}
+*Website:* ${website}
+
+*Business Description:*
+${businessDesc}
+
+*Chatbot Goals:*
+${chatbotGoals}
+
+*Website Chatbot:* ${wantsWebsite}
+*WhatsApp Automation:* ${wantsWhatsApp}
+
+*Frequently Asked Questions:*
+${faqs}
+
+*Business Hours:* ${businessHours}
+*Preferred Language:* ${language}
+
+*Additional Information:*
+${additionalInfo}`;
+
+  // --- Encode and open WhatsApp ---
+  const encoded = encodeURIComponent(message);
+  const waURL = `https://wa.me/233240299171?text=${encoded}`;
+
+  // Open WhatsApp in a new tab
+  window.open(waURL, '_blank');
+
+  // Optional: Show a success message
+  showSuccess();
+});
+
+
+// ---- Helper: Get input value ----
+function getValue(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+// ---- Helper: Get radio value ----
+function getRadio(name) {
+  const checked = document.querySelector(`input[name="${name}"]:checked`);
+  return checked ? checked.value : '';
+}
+
+// ---- Helper: Show error alert ----
+function showAlert(message) {
+  // Remove any existing alert
+  const existing = document.querySelector('.form-alert');
+  if (existing) existing.remove();
+
+  const alert = document.createElement('div');
+  alert.className = 'form-alert form-alert--error';
+  alert.textContent = message;
+  alert.style.cssText = `
+    background: #FEF2F2;
+    border: 1px solid #FCA5A5;
+    color: #B91C1C;
+    padding: 0.9rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    text-align: center;
+  `;
+
+  const submitArea = document.querySelector('.form-submit');
+  form.insertBefore(alert, submitArea);
+
+  // Auto-remove after 5 seconds
+  setTimeout(() => alert.remove(), 5000);
+
+  // Scroll to alert
+  alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ---- Helper: Show success message ----
+function showSuccess() {
+  const existing = document.querySelector('.form-alert');
+  if (existing) existing.remove();
+
+  const success = document.createElement('div');
+  success.className = 'form-alert form-alert--success';
+  success.innerHTML = `
+    <strong>✅ Request sent!</strong> WhatsApp is opening with your details pre-filled.
+    We'll be in touch with you shortly.
+  `;
+  success.style.cssText = `
+    background: #F0FDF4;
+    border: 1px solid #86EFAC;
+    color: #15803D;
+    padding: 0.9rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    text-align: center;
+  `;
+
+  const submitArea = document.querySelector('.form-submit');
+  form.insertBefore(success, submitArea);
+
+  // Scroll to the success message
+  success.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // Auto-remove after 8 seconds
+  setTimeout(() => success.remove(), 8000);
+}
