@@ -1,6 +1,7 @@
 /* ============================================
    FAYAJETS WEBSITE — script.js
-   Handles: Nav toggle, form submission → WhatsApp
+   Handles: Nav toggle, form submission → WhatsApp + Email
+   Location: Accra, Ghana | Hours: Mon–Fri 8AM–5PM
 ============================================ */
 
 // ---- Set Footer Year ----
@@ -25,7 +26,7 @@ document.querySelectorAll('.mobile-link').forEach(link => {
 });
 
 
-// ---- Smooth close nav on scroll (optional UX) ----
+// ---- Close nav on scroll ----
 window.addEventListener('scroll', () => {
   if (mobileMenu.classList.contains('open')) {
     hamburger.classList.remove('active');
@@ -34,7 +35,7 @@ window.addEventListener('scroll', () => {
 });
 
 
-// ---- Bot Request Form → WhatsApp ----
+// ---- Bot Request Form → WhatsApp + Email ----
 const form = document.getElementById('botRequestForm');
 
 form.addEventListener('submit', function (e) {
@@ -42,31 +43,33 @@ form.addEventListener('submit', function (e) {
   e.preventDefault();
 
   // --- Collect form values ---
-  const businessName       = getValue('businessName');
-  const ownerName          = getValue('ownerName');
-  const email              = getValue('email');
-  const phone              = getValue('phone');
-  const whatsapp           = getValue('whatsapp');
-  const country            = getValue('country');
-  const industry           = getValue('industry');
-  const website            = getValue('website') || 'Not provided';
-  const businessDesc       = getValue('businessDesc');
-  const chatbotGoals       = getValue('chatbotGoals');
-  const wantsWebsite       = getRadio('wantsWebsiteChatbot');
-  const wantsWhatsApp      = getRadio('wantsWhatsApp');
-  const faqs               = getValue('faqs') || 'Not provided';
-  const businessHours      = getValue('businessHours');
-  const language           = getValue('language');
-  const additionalInfo     = getValue('additionalInfo') || 'None';
+  const businessName  = getValue('businessName');
+  const ownerName     = getValue('ownerName');
+  const email         = getValue('email');
+  const phone         = getValue('phone');
+  const whatsapp      = getValue('whatsapp');
+  const country       = getValue('country');
+  const industry      = getValue('industry');
+  const website       = getValue('website') || 'Not provided';
+  const businessDesc  = getValue('businessDesc');
+  const chatbotGoals  = getValue('chatbotGoals');
+  const wantsWebsite  = getRadio('wantsWebsiteChatbot');
+  const wantsWhatsApp = getRadio('wantsWhatsApp');
+  const faqs          = getValue('faqs') || 'Not provided';
+  const businessHours = getValue('businessHours');
+  const language      = getValue('language');
+  const additionalInfo = getValue('additionalInfo') || 'None';
 
-  // --- Basic validation check ---
+  // --- Validation ---
   if (!businessName || !ownerName || !email || !phone || !whatsapp || !country || !industry || !businessDesc || !chatbotGoals || !wantsWebsite || !wantsWhatsApp || !businessHours || !language) {
     showAlert('Please fill in all required fields before submitting.');
     return;
   }
 
-  // --- Format message ---
-  const message =
+  // =============================================
+  // 1. FORMAT WHATSAPP MESSAGE
+  // =============================================
+  const waMessage =
 `*New Chatbot Request — Fayajets*
 
 *Business Name:* ${businessName}
@@ -96,14 +99,77 @@ ${faqs}
 *Additional Information:*
 ${additionalInfo}`;
 
-  // --- Encode and open WhatsApp ---
-  const encoded = encodeURIComponent(message);
-  const waURL = `https://wa.me/233240299171?text=${encoded}`;
+  // =============================================
+  // 2. FORMAT EMAIL BODY
+  // =============================================
+  const emailSubject = `New Chatbot Request from ${businessName} — Fayajets`;
 
-  // Open WhatsApp in a new tab
-  window.open(waURL, '_blank');
+  const emailBody =
+`New Chatbot Request — Fayajets
+================================
 
-  // Optional: Show a success message
+Business Name: ${businessName}
+Owner Name: ${ownerName}
+Email: ${email}
+Phone: ${phone}
+WhatsApp: ${whatsapp}
+Country: ${country}
+Industry: ${industry}
+Website: ${website}
+
+Business Description:
+${businessDesc}
+
+Chatbot Goals:
+${chatbotGoals}
+
+Website Chatbot: ${wantsWebsite}
+WhatsApp Automation: ${wantsWhatsApp}
+
+Frequently Asked Questions:
+${faqs}
+
+Business Hours: ${businessHours}
+Preferred Language: ${language}
+
+Additional Information:
+${additionalInfo}
+
+--------------------------------
+Sent via Fayajets Website
+`;
+
+  // =============================================
+  // 3. OPEN WHATSAPP — anchor click (never blocked by browser)
+  // =============================================
+  var encodedWA = encodeURIComponent(waMessage);
+  var waLink = document.createElement('a');
+  waLink.href = 'https://wa.me/233240299171?text=' + encodedWA;
+  waLink.target = '_blank';
+  waLink.rel = 'noopener noreferrer';
+  document.body.appendChild(waLink);
+  waLink.click();
+  document.body.removeChild(waLink);
+
+  // =============================================
+  // 4. OPEN EMAIL CLIENT
+  // Use a hidden <a> click — does NOT navigate away from the page
+  // =============================================
+  setTimeout(function() {
+    const encodedSubject = encodeURIComponent(emailSubject);
+    const encodedBody    = encodeURIComponent(emailBody);
+    const mailtoURL = 'mailto:fayajets@gmail.com?subject=' + encodedSubject + '&body=' + encodedBody;
+    var mailLink = document.createElement('a');
+    mailLink.href = mailtoURL;
+    mailLink.style.display = 'none';
+    document.body.appendChild(mailLink);
+    mailLink.click();
+    document.body.removeChild(mailLink);
+  }, 1000);
+
+  // =============================================
+  // 5. SHOW SUCCESS MESSAGE
+  // =============================================
   showSuccess();
 });
 
@@ -122,7 +188,6 @@ function getRadio(name) {
 
 // ---- Helper: Show error alert ----
 function showAlert(message) {
-  // Remove any existing alert
   const existing = document.querySelector('.form-alert');
   if (existing) existing.remove();
 
@@ -144,10 +209,7 @@ function showAlert(message) {
   const submitArea = document.querySelector('.form-submit');
   form.insertBefore(alert, submitArea);
 
-  // Auto-remove after 5 seconds
   setTimeout(() => alert.remove(), 5000);
-
-  // Scroll to alert
   alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -159,27 +221,27 @@ function showSuccess() {
   const success = document.createElement('div');
   success.className = 'form-alert form-alert--success';
   success.innerHTML = `
-    <strong>✅ Request sent!</strong> WhatsApp is opening with your details pre-filled.
-    We'll be in touch with you shortly.
+    <strong>✅ Request submitted!</strong><br>
+    WhatsApp is opening with your details pre-filled.
+    Your email client will also open shortly so we receive your request on both channels.
+    We'll respond within our working hours: <strong>Mon–Fri, 8AM–5PM (Accra, GMT)</strong>.
   `;
   success.style.cssText = `
     background: #F0FDF4;
     border: 1px solid #86EFAC;
     color: #15803D;
-    padding: 0.9rem 1.2rem;
+    padding: 1rem 1.2rem;
     border-radius: 8px;
     font-size: 0.9rem;
     font-weight: 500;
     margin-bottom: 1rem;
     text-align: center;
+    line-height: 1.6;
   `;
 
   const submitArea = document.querySelector('.form-submit');
   form.insertBefore(success, submitArea);
 
-  // Scroll to the success message
   success.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-  // Auto-remove after 8 seconds
-  setTimeout(() => success.remove(), 8000);
+  setTimeout(() => success.remove(), 10000);
 }
